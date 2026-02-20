@@ -2,13 +2,13 @@ import sqlite3
 
 DB_FILE = 'data.db'
 
-def get_db_connection():
+def get_connection():
     conn = sqlite3.connect(DB_FILE)
     conn.row_factory = sqlite3.Row
     return conn
 
 def init_db():
-    conn = get_db_connection()
+    conn = get_connection()
     cursor = conn.cursor()
     
     #user table
@@ -37,7 +37,7 @@ def init_db():
             username TEXT NOT NULL,
             product_id INTEGER NOT NULL,
             qty INTEGER NOT NULL,
-            PRIMARY KEY (username, product_id),
+            PRIMARY KEY (username, product_id)
         )
     ''')
     #order table
@@ -59,7 +59,9 @@ def init_db():
             order_id INTEGER NOT NULL,
             product_id INTEGER NOT NULL,
             qty INTEGER NOT NULL,
-            price REAL NOT NULL,)''')
+            price REAL NOT NULL
+        )
+    ''')
     
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS discount_codes (
