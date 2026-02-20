@@ -6,77 +6,16 @@ from orders import checkout, get_order_history, setup_discount_codes
 
 
 def setup_default_products():
-    # add products only first time
     products = list_products()
     if len(products) == 0:
-        add_product("USB-C Cable", 9.99, 50)
-        add_product("USB-A to USB-C Adapter", 8.99, 45)
-        add_product("HDMI 2.1 Cable 6ft", 14.99, 40)
-        add_product("USB 3.0 Hub 4-Port", 19.99, 35)
-        add_product("Lightning Cable 2-Pack", 12.99, 55)
-        add_product("Micro USB Cable 3-Pack", 9.99, 60)
-        add_product("DisplayPort Cable", 15.99, 30)
-        add_product("Ethernet Cable 25ft", 11.99, 38)
-        add_product("VGA Cable", 7.99, 42)
-        add_product("USB-C Hub 7-in-1", 29.99, 25)
-        add_product("Wireless Mouse", 19.99, 50)
-        add_product("Mechanical Keyboard RGB", 79.99, 22)
-        add_product("Optical Gaming Mouse", 34.99, 28)
-        add_product("Wireless Keyboard", 39.99, 20)
-        add_product("Bluetooth Mouse Pro", 44.99, 18)
-        add_product("Quiet Mechanical Keyboard", 89.99, 15)
-        add_product("Ergonomic Mouse", 29.99, 32)
-        add_product("Wired Gaming Mouse", 24.99, 35)
-        add_product("Laptop Keyboard USB", 34.99, 25)
-        add_product("Compact Wireless Keyboard", 32.99, 27)
-        add_product("4K Monitor 27-inch", 299.99, 8)
-        add_product("Gaming Monitor 144Hz", 249.99, 12)
-        add_product("Portable Monitor 15.6", 169.99, 14)
-        add_product("Ultrawide Monitor 34-inch", 399.99, 6)
-        add_product("22-inch FHD Monitor", 149.99, 18)
-        add_product("32-inch Curved Monitor", 329.99, 9)
-        add_product("USB-C Monitor", 379.99, 7)
-        add_product("Touchscreen Monitor 24-inch", 449.99, 5)
-        add_product("Wireless Headphones Noise Cancelling", 149.99, 20)
-        add_product("Gaming Headset", 79.99, 28)
-        add_product("Bluetooth Speaker Portable", 59.99, 35)
-        add_product("Earbuds Wireless Pro", 119.99, 30)
-        add_product("Studio Headphones", 199.99, 12)
-        add_product("Sports Earbuds", 49.99, 40)
-        add_product("Stereo Speakers Powered", 89.99, 22)
-        add_product("Wireless Charging Earbuds", 99.99, 25)
-        add_product("Docking Speaker", 69.99, 24)
-        add_product("SSD 1TB NVMe", 79.99, 35)
-        add_product("USB Flash Drive 64GB", 12.99, 50)
-        add_product("Portable Hard Drive 2TB", 69.99, 28)
-        add_product("Memory Card MicroSD 256GB", 24.99, 45)
-        add_product("USB Flash Drive 128GB", 19.99, 40)
-        add_product("SSD 2TB NVMe", 139.99, 20)
-        add_product("Memory Card SD 128GB", 29.99, 35)
-        add_product("USB 3.1 Flash Drive 32GB", 9.99, 60)
-        add_product("Laptop Stand Adjustable", 29.99, 40)
-        add_product("Laptop Cooling Pad", 34.99, 32)
-        add_product("Laptop Sleeve 15.6 inch", 19.99, 45)
-        add_product("Laptop Lock Cable", 12.99, 50)
-        add_product("Laptop Power Bank 30000mAh", 59.99, 22)
-        add_product("Gaming Mouse Pad XL", 24.99, 40)
-        add_product("Gaming Controller Wireless", 59.99, 30)
-        add_product("Gaming Desk Mat", 34.99, 35)
-        add_product("VR Headset", 299.99, 8)
-        add_product("Gaming Eye Care Glasses", 39.99, 25)
-        add_product("Gaming Chair", 249.99, 10)
-        add_product("Cable Management Kit", 14.99, 50)
-        add_product("Gaming Desk Organizer", 29.99, 32)
-        add_product("RGB LED Strip 16ft", 19.99, 38)
-        add_product("Phone Case Universal", 9.99, 60)
-        add_product("Phone Screen Cleaner", 7.99, 65)
-        add_product("Phone Mount Car", 12.99, 50)
-        add_product("Wireless Charging Pad", 19.99, 40)
-        add_product("Fast Charger 65W", 34.99, 32)
-        add_product("Phone Ring Stand", 8.99, 55)
-        add_product("Phone Tripod", 14.99, 45)
-        add_product("Screen Protector Film", 4.99, 80)
-        add_product("Phone Cooling Fan", 14.99, 40)
+        add_product("Laptop", 899.99, 10)
+        add_product("Mouse", 25.99, 20)
+        add_product("Keyboard", 49.99, 15)
+        add_product("Monitor", 199.99, 8)
+        add_product("Headphones", 79.99, 12)
+        add_product("USB Cable", 9.99, 30)
+        add_product("Phone Case", 15.99, 25)
+        add_product("Charger", 34.99, 18)
 
 
 def show_products(products):
@@ -99,7 +38,6 @@ def show_products(products):
 
 
 def browse_products_menu(username):
-    # show all products
     products = list_products()
     show_products(products)
 
@@ -130,7 +68,6 @@ def browse_products_menu(username):
 
 
 def search_products_menu(username):
-    # search by text
     keyword = input("Enter search keyword: ")
     if not keyword:
         return

@@ -5,14 +5,14 @@ from datetime import datetime
 
 
 def setup_discount_codes():
-    # Add default discount codes
+    # Add discount codes
     conn = get_connection()
-    cursor = conn.cursor()
+    c = conn.cursor()
 
     codes = [("SAVE10", 10, 1), ("SAVE15", 15, 1), ("SAVE20", 20, 1)]
 
     for code, percent, active in codes:
-        cursor.execute(
+        c.execute(
             "INSERT OR IGNORE INTO discount_codes (code, percent, active) VALUES (?, ?, ?)",
             (code, percent, active),
         )
@@ -26,12 +26,12 @@ def check_discount_code(code):
         return None
 
     conn = get_connection()
-    cursor = conn.cursor()
-    cursor.execute(
+    c = conn.cursor()
+    c.execute(
         "SELECT code, percent, active FROM discount_codes WHERE code = ?",
         (code.upper(),),
     )
-    row = cursor.fetchone()
+    row = c.fetchone()
     conn.close()
 
     if row and row["active"] == 1:
@@ -45,7 +45,7 @@ def checkout(username, discount_code=None):
     if len(items) == 0:
         return False, "Your cart is empty.", None
 
-    # check stock again before placing order
+    # check if we have stock
     for item in items:
         product = get_product(item["product_id"])
         if not product:
@@ -53,7 +53,7 @@ def checkout(username, discount_code=None):
         if item["qty"] > product["stock"]:
             return False, "Not enough stock for " + product["name"], None
 
-    # apply discount if code is valid
+    # apply discount
     discount_amount = 0
     applied_code = None
     discount = check_discount_code(discount_code)
@@ -65,23 +65,23 @@ def checkout(username, discount_code=None):
     final_total = total - discount_amount
     timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
-    # save order in db
+    # save order
     conn = get_connection()
-    cursor = conn.cursor()
+    c = conn.cursor()
 
-    cursor.execute(
+    c.execute(
         "INSERT INTO orders (username, total_price, discount_code, discount_amount, status, created_at) VALUES (?, ?, ?, ?, ?, ?)",
         (username, final_total, applied_code, discount_amount, "PAID", timestamp),
     )
-    order_id = cursor.lastrowid
+    order_id = c.lastrowid
 
-    # save items and reduce stock
+    # save items and update stock
     for item in items:
-        cursor.execute(
+        c.execute(
             "INSERT INTO order_items (order_id, product_id, qty, price) VALUES (?, ?, ?, ?)",
             (order_id, item["product_id"], item["qty"], item["price"]),
         )
-        cursor.execute(
+        c.execute(
             "UPDATE products SET stock = stock - ? WHERE product_id = ?",
             (item["qty"], item["product_id"]),
         )
@@ -89,10 +89,10 @@ def checkout(username, discount_code=None):
     conn.commit()
     conn.close()
 
-    # clear user cart after success
+    # clear cart
     clear_cart(username)
 
-    # build simple receipt object
+    # make receipt
     receipt = {
         "order_id": order_id,
         "username": username,
@@ -109,31 +109,26 @@ def checkout(username, discount_code=None):
 
 def get_order_history(username):
     conn = get_connection()
-    cursor = conn.cursor()
+    c = conn.cursor()
 
-    # get all orders for this user
-    cursor.execute(
+    # get all orders
+    c.execute(
         "SELECT order_id, total_price, discount_code, discount_amount, status, created_at FROM orders WHERE username = ? ORDER BY order_id DESC",
         (username,),
     )
-    orders = cursor.fetchall()
+    orders = c.fetchall()
 
     order_list = []
 
     for order in orders:
         # get items for this order
-        cursor.execute(
-            """
-            SELECT oi.product_id, oi.qty, oi.price, p.name
-            FROM order_items oi
-            JOIN products p ON oi.product_id = p.product_id
-            WHERE oi.order_id = ?
-        """,
+        c.execute(
+            "SELECT oi.product_id, oi.qty, oi.price, p.name FROM order_items oi JOIN products p ON oi.product_id = p.product_id WHERE oi.order_id = ?",
             (order["order_id"],),
         )
 
         items = []
-        for row in cursor.fetchall():
+        for row in c.fetchall():
             items.append(
                 {
                     "product_id": row["product_id"],

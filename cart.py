@@ -3,7 +3,6 @@ from products import get_product
 
 
 def add_to_cart(username, product_id, qty):
-    # check qty
     if qty <= 0:
         return False, "Quantity should be greater than zero."
 
@@ -15,45 +14,44 @@ def add_to_cart(username, product_id, qty):
         return False, "Not enough stock."
 
     conn = get_connection()
-    cursor = conn.cursor()
+    try:
+        c = conn.cursor()
 
-    cursor.execute(
-        "SELECT qty FROM cart WHERE username = ? AND product_id = ?",
-        (username, product_id),
-    )
-    row = cursor.fetchone()
-
-    if row:
-        # item already exists in cart, so update qty
-        new_qty = row["qty"] + qty
-        if new_qty > product["stock"]:
-            conn.close()
-            return False, "Total quantity exceeds available stock."
-        cursor.execute(
-            "UPDATE cart SET qty = ? WHERE username = ? AND product_id = ?",
-            (new_qty, username, product_id),
+        c.execute(
+            "SELECT qty FROM carts WHERE username = ? AND product_id = ?",
+            (username, product_id),
         )
-    else:
-        # add as new item
-        cursor.execute(
-            "INSERT INTO cart (username, product_id, qty) VALUES (?, ?, ?)",
-            (username, product_id, qty),
-        )
+        row = c.fetchone()
 
-    conn.commit()
-    conn.close()
-    return True, "Added to cart!"
+        if row:
+            new_qty = row["qty"] + qty
+            if new_qty > product["stock"]:
+                return False, "Total quantity exceeds available stock."
+            c.execute(
+                "UPDATE carts SET qty = ? WHERE username = ? AND product_id = ?",
+                (new_qty, username, product_id),
+            )
+        else:
+            c.execute(
+                "INSERT INTO carts (username, product_id, qty) VALUES (?, ?, ?)",
+                (username, product_id, qty),
+            )
+
+        conn.commit()
+        return True, "Added to cart!"
+    finally:
+        conn.close()
 
 
 def remove_from_cart(username, product_id, qty=None):
     conn = get_connection()
-    cursor = conn.cursor()
+    c = conn.cursor()
 
-    cursor.execute(
-        "SELECT qty FROM cart WHERE username = ? AND product_id = ?",
+    c.execute(
+        "SELECT qty FROM carts WHERE username = ? AND product_id = ?",
         (username, product_id),
     )
-    row = cursor.fetchone()
+    row = c.fetchone()
 
     if not row:
         conn.close()
@@ -61,16 +59,17 @@ def remove_from_cart(username, product_id, qty=None):
 
     current_qty = row["qty"]
 
-    # if qty is missing or too large, remove the full item
     if qty is None or qty >= current_qty:
-        cursor.execute(
-            "DELETE FROM cart WHERE username = ? AND product_id = ?",
+        # remove entire item
+        c.execute(
+            "DELETE FROM carts WHERE username = ? AND product_id = ?",
             (username, product_id),
         )
     else:
+        # reduce quantity
         new_qty = current_qty - qty
-        cursor.execute(
-            "UPDATE cart SET qty = ? WHERE username = ? AND product_id = ?",
+        c.execute(
+            "UPDATE carts SET qty = ? WHERE username = ? AND product_id = ?",
             (new_qty, username, product_id),
         )
 
@@ -81,35 +80,31 @@ def remove_from_cart(username, product_id, qty=None):
 
 def get_cart(username):
     conn = get_connection()
-    cursor = conn.cursor()
+    c = conn.cursor()
 
-    cursor.execute(
-        """
-        SELECT c.product_id, c.qty, p.name, p.price, p.stock
-        FROM cart c
-        JOIN products p ON c.product_id = p.product_id
-        WHERE c.username = ?
-        """,
+    c.execute(
+        "SELECT c.product_id, c.qty, p.name, p.price FROM carts c JOIN products p ON c.product_id = p.product_id WHERE c.username = ?",
         (username,),
     )
 
-    rows = cursor.fetchall()
+    rows = c.fetchall()
     conn.close()
 
     items = []
     total = 0
 
     for row in rows:
-        subtotal = row["qty"] * row["price"]
+        price = row["price"]
+        qty = row["qty"]
+        subtotal = qty * price
         total = total + subtotal
 
         item = {
             "product_id": row["product_id"],
             "name": row["name"],
-            "qty": row["qty"],
-            "price": row["price"],
+            "qty": qty,
+            "price": price,
             "subtotal": subtotal,
-            "stock": row["stock"],
         }
         items.append(item)
 
@@ -118,7 +113,7 @@ def get_cart(username):
 
 def clear_cart(username):
     conn = get_connection()
-    cursor = conn.cursor()
-    cursor.execute("DELETE FROM cart WHERE username = ?", (username,))
+    c = conn.cursor()
+    c.execute("DELETE FROM carts WHERE username = ?", (username,))
     conn.commit()
     conn.close()
